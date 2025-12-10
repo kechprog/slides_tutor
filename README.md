@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Slides Tutor
 
-## Getting Started
+A narrated slideshow tutorial app. Upload `.sld` files and the app presents slides with text-to-speech narration, highlighting elements as they're read.
 
-First, run the development server:
+## Features
+
+- Custom `.sld` file format (HTML subset with narration attributes)
+- Text-to-speech narration with element highlighting
+- Playback controls (play/pause/stop, speed adjustment)
+- Auto-advance between slides
+- Keyboard shortcuts (Space, Arrow keys)
+- Progress tracking
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## .sld File Format
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```html
+<slideshow title="My Tutorial">
+  <slide order="1">
+    <h1 order="1" narration="Welcome to the tutorial">Introduction</h1>
+    <p order="2" narration="Let's get started" delay="500">Content here</p>
+  </slide>
+</slideshow>
+```
 
-## Learn More
+**Attributes:**
+- `order` - Narration sequence (required with narration)
+- `narration` - Text to speak
+- `delay` - Pause before narration (ms)
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 | TypeScript | Tailwind CSS | Web Speech API
