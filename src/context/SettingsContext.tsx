@@ -8,6 +8,7 @@ export interface Settings {
   voiceId: string | null;       // Selected TTS voice
   highlightColor: string;       // Highlight color, default '#fef08a'
   theme: 'light' | 'dark';      // UI theme, default 'light'
+  ttsProvider: 'web-speech' | 'openai';  // TTS provider
 }
 
 export interface SettingsContextValue {
@@ -22,6 +23,7 @@ const DEFAULT_SETTINGS: Settings = {
   voiceId: null,
   highlightColor: '#fef08a',
   theme: 'light',
+  ttsProvider: 'openai',  // Default to OpenAI-compatible (VibeVoice)
 };
 
 const STORAGE_KEY = 'slides-tutor-settings';

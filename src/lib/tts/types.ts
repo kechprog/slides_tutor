@@ -81,4 +81,24 @@ export interface TTSEngine {
    * @returns Array of available voices
    */
   getVoices(): Voice[];
+
+  /**
+   * Prefetches audio for the given texts.
+   * Implementations that don't support prefetching should resolve immediately.
+   * @param texts - Array of texts to prefetch
+   * @returns Promise that resolves when prefetching is initiated (not necessarily complete)
+   */
+  prefetch(texts: string[]): Promise<void>;
+
+  /**
+   * Cancels any in-flight prefetch requests.
+   * Already-cached items remain in cache.
+   */
+  cancelPrefetch(): void;
+
+  /**
+   * Clears the audio cache to free memory.
+   * Implementations without caching can no-op.
+   */
+  clearCache(): void;
 }

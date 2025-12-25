@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 .claude
+
+# VibeVoice TTS service (cloned repo, models, etc.)
+/services/vibevoice/*
+!/services/vibevoice/setup.ps1
+!/services/vibevoice/test-tts.ps1
+!/services/vibevoice/README.md

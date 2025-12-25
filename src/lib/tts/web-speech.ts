@@ -289,4 +289,26 @@ export class WebSpeechTTS implements TTSEngine {
       language: voice.lang,
     }));
   }
+
+  /**
+   * No-op for Web Speech API (generates audio on-the-fly)
+   */
+  async prefetch(_texts: string[]): Promise<void> {
+    // Web Speech API doesn't support prefetching
+    return Promise.resolve();
+  }
+
+  /**
+   * No-op for Web Speech API (no prefetch to cancel)
+   */
+  cancelPrefetch(): void {
+    // No-op
+  }
+
+  /**
+   * No-op for Web Speech API (no caching)
+   */
+  clearCache(): void {
+    // No-op
+  }
 }

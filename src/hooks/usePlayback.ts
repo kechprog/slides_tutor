@@ -4,8 +4,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Slideshow } from '../lib/parser/types';
 import { buildNarrationQueue } from '../lib/narration';
 import type { NarrationItem } from '../lib/narration';
-import { WebSpeechTTS } from '../lib/tts/web-speech';
+import { createTTSEngine } from '../lib/tts';
 import type { TTSEngine } from '../lib/tts/types';
+import { useSettings } from '../context/SettingsContext';
 
 interface PlaybackState {
   status: 'idle' | 'playing' | 'paused' | 'finished';
@@ -29,6 +30,11 @@ export function usePlayback(slideshow: Slideshow | null): {
   state: PlaybackState;
   controls: PlaybackControls;
 } {
+  const PREFETCH_LOOKAHEAD = 3;
+
+  // Get settings from context
+  const { settings } = useSettings();
+
   // State
   const [state, setState] = useState<PlaybackState>({
     status: 'idle',
@@ -48,16 +54,35 @@ export function usePlayback(slideshow: Slideshow | null): {
   const currentNarrationIndexRef = useRef<number>(0);
   const currentSlideIndexRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prefetchedTextsRef = useRef<Set<string>>(new Set());
 
-  // Initialize TTS engine
+  // Initialize TTS engine - re-create when provider or voice changes
   useEffect(() => {
-    ttsEngineRef.current = new WebSpeechTTS({
-      onError: (error) => {
-        console.error('TTS Error:', error);
-        setState((prev) => ({ ...prev, status: 'idle' }));
-        isPlayingRef.current = false;
-      },
-    });
+    // Stop any existing engine before creating a new one
+    if (ttsEngineRef.current) {
+      ttsEngineRef.current.stop();
+    }
+    prefetchedTextsRef.current.clear();
+
+    // Create TTS engine with provider from settings
+    ttsEngineRef.current = createTTSEngine(
+      { provider: settings.ttsProvider, voice: settings.voiceId ?? undefined },
+      {
+        onError: (error: Error) => {
+          console.error('TTS Error:', error);
+          setState((prev) => ({ ...prev, status: 'idle' }));
+          isPlayingRef.current = false;
+        },
+      }
+    );
+
+    // Apply voice setting if available
+    if (settings.voiceId) {
+      ttsEngineRef.current.setVoice(settings.voiceId);
+    }
+
+    // Apply playback rate from settings
+    ttsEngineRef.current.setRate(settings.playbackRate);
 
     // Cleanup on unmount
     return () => {
@@ -69,16 +94,14 @@ export function usePlayback(slideshow: Slideshow | null): {
         ttsEngineRef.current.stop();
       }
     };
-  }, []);
+  }, [settings.ttsProvider, settings.voiceId]);
 
-  // Build narration queue when slideshow changes
+  // Update playback rate when settings change (without re-creating the engine)
   useEffect(() => {
-    if (slideshow) {
-      narrationQueueRef.current = buildNarrationQueue(slideshow);
-    } else {
-      narrationQueueRef.current = [];
+    if (ttsEngineRef.current) {
+      ttsEngineRef.current.setRate(settings.playbackRate);
     }
-  }, [slideshow]);
+  }, [settings.playbackRate]);
 
   // Helper to get current slide's narration items
   const getCurrentSlideNarrations = useCallback((slideIndex: number): NarrationItem[] => {
@@ -89,6 +112,41 @@ export function usePlayback(slideshow: Slideshow | null): {
   const getFirstNarrationIndexForSlide = useCallback((slideIndex: number): number => {
     return narrationQueueRef.current.findIndex((item) => item.slideIndex === slideIndex);
   }, []);
+
+  // Helper to prefetch upcoming narration items
+  const prefetchUpcoming = useCallback((fromIndex: number, count: number) => {
+    if (!ttsEngineRef.current?.prefetch) {
+      return;
+    }
+
+    const queue = narrationQueueRef.current;
+    const prefetchedSet = prefetchedTextsRef.current;
+    const textsToFetch: string[] = [];
+
+    for (let i = fromIndex; i < queue.length && textsToFetch.length < count; i++) {
+      const item = queue[i];
+      if (!prefetchedSet.has(item.text)) {
+        textsToFetch.push(item.text);
+        prefetchedSet.add(item.text);
+      }
+    }
+
+    if (textsToFetch.length > 0) {
+      ttsEngineRef.current.prefetch(textsToFetch);
+    }
+  }, []);
+
+  // Build narration queue when slideshow changes
+  // Note: We intentionally don't prefetch here to avoid blocking the first speak() call.
+  // Prefetching happens after each narration completes in playNextNarration.
+  useEffect(() => {
+    if (slideshow) {
+      narrationQueueRef.current = buildNarrationQueue(slideshow);
+      prefetchedTextsRef.current.clear();
+    } else {
+      narrationQueueRef.current = [];
+    }
+  }, [slideshow]);
 
   // Play next narration item
   const playNextNarration = useCallback(async () => {
@@ -178,6 +236,7 @@ export function usePlayback(slideshow: Slideshow | null): {
         ...prev,
         currentNarrationIndex: currentNarrationIndexRef.current,
       }));
+      prefetchUpcoming(currentNarrationIndexRef.current + 1, PREFETCH_LOOKAHEAD);
 
       // Continue playing
       if (isPlayingRef.current) {
@@ -188,7 +247,7 @@ export function usePlayback(slideshow: Slideshow | null): {
       // Error already logged by TTS engine
       console.error('Playback error:', error);
     }
-  }, [slideshow, getFirstNarrationIndexForSlide]);
+  }, [slideshow, getFirstNarrationIndexForSlide, prefetchUpcoming]);
 
   // Play control
   const play = useCallback(() => {
@@ -222,8 +281,9 @@ export function usePlayback(slideshow: Slideshow | null): {
     // Start playing
     setState((prev) => ({ ...prev, status: 'playing' }));
     isPlayingRef.current = true;
+    prefetchUpcoming(currentNarrationIndexRef.current, PREFETCH_LOOKAHEAD);
     playNextNarration();
-  }, [slideshow, state.status, playNextNarration]);
+  }, [slideshow, state.status, playNextNarration, prefetchUpcoming]);
 
   // Pause control
   const pause = useCallback(() => {
