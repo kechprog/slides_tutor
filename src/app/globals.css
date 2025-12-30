@@ -3,6 +3,7 @@
 @import "../styles/slide.css";
 @import "../styles/highlighting.css";
 @import "../styles/subtitles.css";
+@import "../styles/controls.css";
 
 :root {
   --background: #ffffff;
