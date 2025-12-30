@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Component Styles - Default presentation component styling
+   ========================================================================== */
+
+/* Typography - Responsive sizing with clamp() */
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.2;
+  font-weight: 700;
+  margin-bottom: var(--spacing-lg);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+h4,
+h5,
+h6 {
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+p {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Body text line height */
+body {
+  line-height: 1.7;
+}
+
+/* Lists - Custom styling with proper indentation */
+ul,
+ol {
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-lg);
+}
+
+ul {
+  list-style: none;
+}
+
+ul li {
+  position: relative;
+  padding-left: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.7;
+}
+
+/* Custom bullet styling */
+ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 6px;
+  height: 6px;
+  background-color: currentColor;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+/* Nested list bullet variation */
+ul ul li::before {
+  background-color: transparent;
+  border: 1.5px solid currentColor;
+}
+
+ul ul ul li::before {
+  background-color: currentColor;
+  width: 4px;
+  height: 4px;
+  border: none;
+}
+
+ol li {
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.7;
+}
+
+/* Nested lists spacing */
+ul ul,
+ul ol,
+ol ul,
+ol ol {
+  margin-top: var(--spacing-sm);
+  margin-bottom: 0;
+}
+
+/* Border radius defaults */
+.rounded,
+.card {
+  border-radius: var(--border-radius-default);
+}
+
+.card {
+  border-radius: var(--border-radius-card);
+  padding: var(--spacing-lg);
+}
+
+/* Blockquote styling */
+blockquote {
+  border-left: 4px solid currentColor;
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Code blocks */
+pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius-default);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin-bottom: var(--spacing-md);
+}
+
+code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9em;
+}
+
+/* Inline code */
+:not(pre) > code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  pre,
+  :not(pre) > code {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Strong and emphasis */
+strong {
+  font-weight: 700;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Images within content */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius-default);
+}
