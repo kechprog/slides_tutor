@@ -1,12 +1,15 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { HighlightStyle } from '@/lib/highlighting/types';
 
 export interface Settings {
   playbackRate: number;         // 0.5 - 2.0, default 1.0
   autoAdvance: boolean;         // Auto-advance slides, default true
   voiceId: string | null;       // Selected TTS voice
   highlightColor: string;       // Highlight color, default '#fef08a'
+  highlightStyle: HighlightStyle; // Highlight style, default 'glow'
+  showHighlightIndicator: boolean; // Show speech bubble indicator, default true
   theme: 'light' | 'dark';      // UI theme, default 'light'
   ttsProvider: 'web-speech' | 'openai';  // TTS provider
 }
@@ -22,6 +25,8 @@ const DEFAULT_SETTINGS: Settings = {
   autoAdvance: true,
   voiceId: 'soprano',  // Default to local soprano TTS service
   highlightColor: '#fef08a',
+  highlightStyle: 'glow',
+  showHighlightIndicator: true,
   theme: 'light',
   ttsProvider: 'openai',  // Default to OpenAI-compatible (local soprano)
 };
