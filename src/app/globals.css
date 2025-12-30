@@ -1,9 +1,23 @@
 @import "tailwindcss";
+@import "../styles/components.css";
+@import "../styles/slide.css";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
   --highlight-color: #fef08a;
+
+  /* Spacing scale - 4px base */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Border radius */
+  --border-radius-default: 8px;
+  --border-radius-card: 12px;
 }
 
 @theme inline {
