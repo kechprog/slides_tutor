@@ -12,7 +12,22 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python virtual environments
+    "**/.venv/**",
+    "**/venv/**",
+    // Services with their own tooling
+    "services/**",
   ]),
+  // Custom rules
+  {
+    rules: {
+      // Allow unused variables prefixed with underscore
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+      }],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -11,36 +11,24 @@ interface FileUploaderProps {
 export default function FileUploader({ onFileLoaded, onError, isLoading = false }: FileUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const validateFile = (file: File): boolean => {
-    if (!file.name.endsWith('.sld')) {
-      onError('Invalid file type. Please upload a .sld file.');
-      return false;
-    }
-    return true;
-  };
-
-  const readFile = async (file: File) => {
-    try {
-      const content = await file.text();
-      onFileLoaded(content, file.name);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to read file';
-      onError(`Error reading file: ${errorMessage}`);
-    }
-  };
-
-  const handleFile = (file: File | undefined) => {
+  const handleFile = useCallback((file: File | undefined) => {
     if (!file) {
       onError('No file selected.');
       return;
     }
 
-    if (!validateFile(file)) {
+    if (!file.name.endsWith('.sld')) {
+      onError('Invalid file type. Please upload a .sld file.');
       return;
     }
 
-    readFile(file);
-  };
+    file.text()
+      .then(content => onFileLoaded(content, file.name))
+      .catch(error => {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to read file';
+        onError(`Error reading file: ${errorMessage}`);
+      });
+  }, [onFileLoaded, onError]);
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -65,7 +53,7 @@ export default function FileUploader({ onFileLoaded, onError, isLoading = false 
         handleFile(files[0]);
       }
     },
-    [onFileLoaded, onError]
+    [handleFile]
   );
 
   const handleFileInput = useCallback(
@@ -75,7 +63,7 @@ export default function FileUploader({ onFileLoaded, onError, isLoading = false 
         handleFile(files[0]);
       }
     },
-    [onFileLoaded, onError]
+    [handleFile]
   );
 
   const handleClick = () => {

@@ -55,6 +55,7 @@ export function usePlayback(slideshow: Slideshow | null): {
   const currentSlideIndexRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prefetchedTextsRef = useRef<Set<string>>(new Set());
+  const playNextNarrationRef = useRef<(() => Promise<void>) | null>(null);
 
   // Initialize TTS engine - re-create when provider or voice changes
   useEffect(() => {
@@ -81,9 +82,6 @@ export function usePlayback(slideshow: Slideshow | null): {
       ttsEngineRef.current.setVoice(settings.voiceId);
     }
 
-    // Apply playback rate from settings
-    ttsEngineRef.current.setRate(settings.playbackRate);
-
     // Cleanup on unmount
     return () => {
       if (timeoutRef.current) {
@@ -102,11 +100,6 @@ export function usePlayback(slideshow: Slideshow | null): {
       ttsEngineRef.current.setRate(settings.playbackRate);
     }
   }, [settings.playbackRate]);
-
-  // Helper to get current slide's narration items
-  const getCurrentSlideNarrations = useCallback((slideIndex: number): NarrationItem[] => {
-    return narrationQueueRef.current.filter((item) => item.slideIndex === slideIndex);
-  }, []);
 
   // Helper to find narration index for a slide
   const getFirstNarrationIndexForSlide = useCallback((slideIndex: number): number => {
@@ -173,7 +166,7 @@ export function usePlayback(slideshow: Slideshow | null): {
             highlightedElementId: null,
           }));
           // Continue playing the next slide
-          timeoutRef.current = setTimeout(() => playNextNarration(), 0);
+          timeoutRef.current = setTimeout(() => playNextNarrationRef.current?.(), 0);
         } else {
           // Next slide has no narrations, set to finished
           setState((prev) => ({
@@ -241,13 +234,18 @@ export function usePlayback(slideshow: Slideshow | null): {
       // Continue playing
       if (isPlayingRef.current) {
         // Use setTimeout to avoid stack overflow with recursive calls
-        timeoutRef.current = setTimeout(() => playNextNarration(), 0);
+        timeoutRef.current = setTimeout(() => playNextNarrationRef.current?.(), 0);
       }
     } catch (error) {
       // Error already logged by TTS engine
       console.error('Playback error:', error);
     }
   }, [slideshow, getFirstNarrationIndexForSlide, prefetchUpcoming]);
+
+  // Keep ref in sync with the latest callback
+  useEffect(() => {
+    playNextNarrationRef.current = playNextNarration;
+  }, [playNextNarration]);
 
   // Play control
   const play = useCallback(() => {

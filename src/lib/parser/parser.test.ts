@@ -1033,7 +1033,7 @@ describe("parseSld - E006: Slide order not positive integer", () => {
       ["1 ", "trailing space"],
       ["+1", "plus sign"],
       ["", "empty string"],
-    ])("fails when order is %s (%s)", (orderValue, description) => {
+    ])("fails when order is %s (%s)", (orderValue, _description) => {
       const content = `
         <slideshow title="Test">
           <slide order="${orderValue}"><p>Content</p></slide>
@@ -1182,7 +1182,7 @@ describe("parseSld - E011: Content element order not positive integer", () => {
       ["01", "leading zero"],
       ["007", "multiple leading zeros"],
       ["+5", "plus sign"],
-    ])("fails when content order is %s (%s)", (orderValue, description) => {
+    ])("fails when content order is %s (%s)", (orderValue, _description) => {
       const content = `
         <slideshow title="Test">
           <slide order="1">
@@ -1231,7 +1231,7 @@ describe("parseSld - E012: Invalid delay", () => {
       ["00", "all zeros"],
       [" 100 ", "with spaces"],
       ["100ms", "with units"],
-    ])("fails when delay is %s (%s)", (delayValue, description) => {
+    ])("fails when delay is %s (%s)", (delayValue, _description) => {
       const content = `
         <slideshow title="Test">
           <slide order="1">
@@ -1647,7 +1647,7 @@ describe("parseSld - E022: Invalid date format", () => {
       ["2025-01-5", "missing zero in day"],
       ["2025-01-15T10:30:00Z", "timestamp"],
       ["2025", "year only"],
-    ])("rejects created with invalid format: %s (%s)", (dateValue, description) => {
+    ])("rejects created with invalid format: %s (%s)", (dateValue, _description) => {
       const input = `
         <slideshow title="Test">
           <metadata>

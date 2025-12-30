@@ -20,10 +20,10 @@ export interface SettingsContextValue {
 const DEFAULT_SETTINGS: Settings = {
   playbackRate: 1.0,
   autoAdvance: true,
-  voiceId: null,
+  voiceId: 'soprano',  // Default to local soprano TTS service
   highlightColor: '#fef08a',
   theme: 'light',
-  ttsProvider: 'openai',  // Default to OpenAI-compatible (VibeVoice)
+  ttsProvider: 'openai',  // Default to OpenAI-compatible (local soprano)
 };
 
 const STORAGE_KEY = 'slides-tutor-settings';

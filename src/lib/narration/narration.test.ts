@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildNarrationQueue } from "./builder";
-import type { Slideshow, Slide, ContainerElement } from "../parser/types";
+import type { Slideshow } from "../parser/types";
 
 /**
  * NARRATION SYSTEM TEST SUITE

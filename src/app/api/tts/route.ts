@@ -17,6 +17,7 @@ const VALID_VOICES = new Set([
   "Grace",
   "Mike",
   "Samuel",
+  "soprano",
 ]);
 
 const VALID_FORMATS = new Set(["mp3", "wav", "opus", "flac", "aac", "pcm"]);
@@ -110,11 +111,17 @@ export async function POST(request: NextRequest) {
   const { data } = validation;
   const format = data.response_format || "mp3";
 
+  // Determine API URL based on model
+  let apiUrl = TTS_API_URL;
+  if (data.model === "soprano-80m") {
+    apiUrl = "http://localhost:8000";
+  }
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TTS_REQUEST_TIMEOUT);
 
   try {
-    const ttsResponse = await fetch(`${TTS_API_URL}/v1/audio/speech`, {
+    const ttsResponse = await fetch(`${apiUrl}/v1/audio/speech`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

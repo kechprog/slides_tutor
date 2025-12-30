@@ -26,6 +26,8 @@ const AVAILABLE_VOICES: Voice[] = [
   { id: 'Grace', name: 'Grace', language: 'en-US' },
   { id: 'Mike', name: 'Mike', language: 'en-US' },
   { id: 'Samuel', name: 'Samuel', language: 'en-US' },
+  // Local Soprano voice
+  { id: 'soprano', name: 'Soprano (Local)', language: 'multilingual' },
 ];
 
 /**
@@ -51,7 +53,7 @@ function hashText(text: string, voice: string): string {
  */
 export class OpenAICompatibleTTS implements TTSEngine {
   private audio: HTMLAudioElement | null = null;
-  private voice: string = 'nova';
+  private voice: string = 'soprano';
   private rate: number = 1.0;
   private paused: boolean = false;
   private speaking: boolean = false;
@@ -87,12 +89,15 @@ export class OpenAICompatibleTTS implements TTSEngine {
    * @returns Promise that resolves to a blob URL
    */
   private async fetchAudio(text: string): Promise<string> {
+    const model = this.voice === 'soprano' ? 'soprano-80m' : 'tts-1';
+
     const response = await fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         input: text,
         voice: this.voice,
+        model: model,
         response_format: 'mp3',
       }),
     });
@@ -329,7 +334,7 @@ export class OpenAICompatibleTTS implements TTSEngine {
   clearCache(): void {
     // Revoke all blob URLs to free memory
     for (const promise of this.cache.values()) {
-      promise.then(blobUrl => URL.revokeObjectURL(blobUrl)).catch(() => {});
+      promise.then(blobUrl => URL.revokeObjectURL(blobUrl)).catch(() => { });
     }
     this.cache.clear();
     this.prefetchQueue = [];

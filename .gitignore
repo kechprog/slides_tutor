@@ -42,8 +42,16 @@ next-env.d.ts
 
 .claude
 
-# VibeVoice TTS service (cloned repo, models, etc.)
+# TTS services (virtual environments, models, etc.)
 /services/vibevoice/*
 !/services/vibevoice/setup.ps1
 !/services/vibevoice/test-tts.ps1
 !/services/vibevoice/README.md
+
+# Soprano TTS service
+/services/soprano/.venv/
+/services/soprano/__pycache__/
+
+# IDE
+.vscode/
+.idea/

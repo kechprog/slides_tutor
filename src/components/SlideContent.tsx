@@ -27,9 +27,11 @@ const SlideContentComponent = ({ node, path, highlightedElementId }: SlideConten
   const ariaProps = isHighlighted ? { 'aria-current': 'step' as const } : {};
 
   // Handle image elements
+  // Using native <img> for slideshow content that may have external URLs
   if (node.type === 'img') {
     const imgElement = node as ImgElement;
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         id={elementId}
         className={className}

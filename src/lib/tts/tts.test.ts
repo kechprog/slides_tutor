@@ -30,7 +30,8 @@ class MockSpeechSynthesis {
   speaking: boolean = false;
   pending: boolean = false;
   paused: boolean = false;
-  private utterances: MockSpeechSynthesisUtterance[] = [];
+  onvoiceschanged: ((this: SpeechSynthesis, ev: Event) => void) | null = null;
+  utterances: MockSpeechSynthesisUtterance[] = [];
   private voices: SpeechSynthesisVoice[] = [];
   private eventListeners: Map<string, Set<EventListener>> = new Map();
 
@@ -108,6 +109,14 @@ class MockSpeechSynthesis {
 
   removeEventListener(event: string, callback: EventListener): void {
     this.eventListeners.get(event)?.delete(callback);
+  }
+
+  dispatchEvent(event: Event): boolean {
+    const listeners = this.eventListeners.get(event.type);
+    if (listeners) {
+      listeners.forEach(listener => listener(event));
+    }
+    return true;
   }
 
   // Helper method to trigger voiceschanged event
@@ -412,7 +421,7 @@ describe("WebSpeechTTS", () => {
       tts.speak("Test");
 
       // Check the utterance that was created
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].rate).toBe(1.5);
 
       // Cleanup
@@ -425,7 +434,7 @@ describe("WebSpeechTTS", () => {
 
       tts.speak("Test");
 
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].rate).toBe(0.5);
 
       tts.stop();
@@ -437,7 +446,7 @@ describe("WebSpeechTTS", () => {
 
       tts.speak("Test");
 
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].rate).toBe(2.0);
 
       tts.stop();
@@ -455,9 +464,9 @@ describe("WebSpeechTTS", () => {
       // Wait a tick for the speak to start (voices are already loaded in mock)
       await Promise.resolve();
 
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].voice).toBeDefined();
-      expect(utterances[0].voice.voiceURI).toBe("en-US-1");
+      expect(utterances[0].voice!.voiceURI).toBe("en-US-1");
 
       tts.stop();
       await speakPromise;
@@ -473,9 +482,9 @@ describe("WebSpeechTTS", () => {
       // Wait a tick for the speak to start (voices are already loaded in mock)
       await Promise.resolve();
 
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].voice).toBeDefined();
-      expect(utterances[0].voice.name).toBe("Google UK English");
+      expect(utterances[0].voice!.name).toBe("Google UK English");
 
       tts.stop();
       await speakPromise;
@@ -491,7 +500,7 @@ describe("WebSpeechTTS", () => {
       // Wait a tick for the speak to start (voices are already loaded in mock)
       await Promise.resolve();
 
-      const utterances = (mockSynthesis as any).utterances;
+      const utterances = mockSynthesis.utterances;
       expect(utterances[0].voice).toBeNull();
 
       tts.stop();
@@ -613,7 +622,7 @@ describe("createTTSEngine()", () => {
       onStart: vi.fn(),
       onEnd: vi.fn(),
     };
-    const engine = createTTSEngine(events);
+    const engine = createTTSEngine({ provider: 'web-speech' }, events);
     expect(engine).toBeDefined();
   });
 

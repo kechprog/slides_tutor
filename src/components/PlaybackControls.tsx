@@ -38,7 +38,7 @@ export function PlaybackControls({
   const { playbackRate, autoAdvance } = settings;
 
   const isPlaying = status === 'playing';
-  const isPaused = status === 'paused';
+  const _isPaused = status === 'paused';
   const isIdle = status === 'idle';
   const isFinished = status === 'finished';
   const isFirstSlide = currentSlideIndex === 0;

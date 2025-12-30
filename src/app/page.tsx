@@ -12,7 +12,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingDemo, setIsLoadingDemo] = useState(false);
 
-  const handleFileLoaded = (content: string, filename: string) => {
+  const handleFileLoaded = (content: string, _filename: string) => {
     try {
       setError(null);
       const result = parseSld(content);
@@ -149,7 +149,7 @@ export default function HomePage() {
           <ol className="list-decimal list-inside space-y-2 text-gray-700">
             <li>Upload a .sld file using the uploader above, or try the demo</li>
             <li>The slideshow will be parsed and validated</li>
-            <li>If successful, you'll be taken to the presentation view</li>
+            <li>If successful, you&apos;ll be taken to the presentation view</li>
             <li>Use playback controls to navigate and hear narration</li>
           </ol>
         </div>
