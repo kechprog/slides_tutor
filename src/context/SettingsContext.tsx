@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { DEFAULT_PALETTE_ID } from '@/lib/palettes';
 
 export interface Settings {
   playbackRate: number;         // 0.5 - 2.0, default 1.0
@@ -9,6 +10,7 @@ export interface Settings {
   highlightColor: string;       // Highlight color, default '#fef08a'
   theme: 'light' | 'dark';      // UI theme, default 'light'
   ttsProvider: 'web-speech' | 'openai';  // TTS provider
+  selectedPaletteId: string;    // Color palette ID, default 'modern-minimal'
 }
 
 export interface SettingsContextValue {
@@ -24,6 +26,7 @@ const DEFAULT_SETTINGS: Settings = {
   highlightColor: '#fef08a',
   theme: 'light',
   ttsProvider: 'openai',  // Default to OpenAI-compatible (local soprano)
+  selectedPaletteId: DEFAULT_PALETTE_ID,
 };
 
 const STORAGE_KEY = 'slides-tutor-settings';
