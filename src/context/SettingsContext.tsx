@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { SubtitleSize } from '@/lib/subtitles/types';
 
 export interface Settings {
   playbackRate: number;         // 0.5 - 2.0, default 1.0
@@ -9,6 +10,10 @@ export interface Settings {
   highlightColor: string;       // Highlight color, default '#fef08a'
   theme: 'light' | 'dark';      // UI theme, default 'light'
   ttsProvider: 'web-speech' | 'openai';  // TTS provider
+  subtitlesEnabled: boolean;    // Enable subtitles, default false
+  subtitleSize: SubtitleSize;   // Subtitle size, default 'medium'
+  subtitlePosition: 'top' | 'bottom';  // Subtitle position, default 'bottom'
+  subtitleBackground: 'solid' | 'blur' | 'none';  // Subtitle background style, default 'blur'
 }
 
 export interface SettingsContextValue {
@@ -24,6 +29,10 @@ const DEFAULT_SETTINGS: Settings = {
   highlightColor: '#fef08a',
   theme: 'light',
   ttsProvider: 'openai',  // Default to OpenAI-compatible (local soprano)
+  subtitlesEnabled: false,
+  subtitleSize: 'medium',
+  subtitlePosition: 'bottom',
+  subtitleBackground: 'blur',
 };
 
 const STORAGE_KEY = 'slides-tutor-settings';
