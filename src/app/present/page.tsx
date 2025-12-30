@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { SlideRenderer } from '@/components/SlideRenderer';
-import { PlaybackControls } from '@/components/PlaybackControls';
+import { ControlPanel } from '@/components/ControlPanel';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useSlideshow, useSettings } from '@/context';
 import { usePlayback } from '@/hooks';
@@ -268,19 +268,17 @@ export default function PresentPage() {
         />
       </div>
 
-      {/* Playback Controls Overlay */}
-      <div className="absolute bottom-16 left-0 right-0 z-20 flex justify-center px-4">
-        <div className="bg-gray-800 bg-opacity-95 rounded-lg shadow-lg backdrop-blur-sm">
-          <PlaybackControls
-            state={state}
-            controls={controls}
-            totalSlides={totalSlides}
-          />
-        </div>
-      </div>
+      {/* Unified Control Panel - auto-hides after inactivity */}
+      <ControlPanel
+        state={state}
+        controls={controls}
+        totalSlides={totalSlides}
+        onSettingsClick={() => setShowSettings(!showSettings)}
+        autoHideDelay={3000}
+      />
 
-      {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-20">
+      {/* Progress Bar - always visible at the very bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
         <ProgressBar
           currentSlide={state.currentSlideIndex}
           totalSlides={totalSlides}
