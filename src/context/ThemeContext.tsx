@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -30,45 +30,32 @@ function getStoredTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
+  // Use lazy initialization to get stored theme on first render
+  const [theme, setThemeState] = useState<Theme>(getStoredTheme);
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme);
 
-  // Initialize theme from localStorage after mount
+  // Compute resolved theme from current theme and system theme
+  const resolvedTheme = useMemo<'light' | 'dark'>(() => {
+    if (theme === 'system') return systemTheme;
+    return theme;
+  }, [theme, systemTheme]);
+
+  // Apply theme to DOM when resolved theme changes
   useEffect(() => {
-    const storedTheme = getStoredTheme();
-    setThemeState(storedTheme);
-    setMounted(true);
-  }, []);
-
-  // Update resolved theme and apply to DOM
-  useEffect(() => {
-    if (!mounted) return;
-
-    const resolved = theme === 'system' ? getSystemTheme() : theme;
-    setResolvedTheme(resolved);
-
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', resolved);
-  }, [theme, mounted]);
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+  }, [resolvedTheme]);
 
   // Listen for system theme changes
   useEffect(() => {
-    if (!mounted) return;
-
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = () => {
-      if (theme === 'system') {
-        const resolved = getSystemTheme();
-        setResolvedTheme(resolved);
-        document.documentElement.setAttribute('data-theme', resolved);
-      }
+      setSystemTheme(getSystemTheme());
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, mounted]);
+  }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
@@ -79,7 +66,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   }, [resolvedTheme, setTheme]);
 
-  // Prevent hydration mismatch by not rendering until mounted
   const value: ThemeContextValue = {
     theme,
     setTheme,
