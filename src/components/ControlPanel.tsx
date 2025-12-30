@@ -82,6 +82,21 @@ export function ControlPanel({
     }
   }, [autoHideDelay]);
 
+  // Set up initial auto-hide timer
+  useEffect(() => {
+    if (autoHideDelay > 0) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setIsVisible(false);
+      }, autoHideDelay);
+    }
+
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, [autoHideDelay]);
+
   // Show panel on mouse move or keyboard activity
   useEffect(() => {
     const handleActivity = () => {
@@ -112,16 +127,10 @@ export function ControlPanel({
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('touchstart', handleActivity);
 
-    // Initial timer
-    resetHideTimer();
-
     return () => {
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('touchstart', handleActivity);
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-      }
     };
   }, [resetHideTimer]);
 
