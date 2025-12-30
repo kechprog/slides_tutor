@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { DEFAULT_PALETTE_ID } from '@/lib/palettes';
 import { HighlightStyle } from '@/lib/highlighting/types';
+import { SubtitleSize } from '@/lib/subtitles/types';
 
 export interface Settings {
   playbackRate: number;         // 0.5 - 2.0, default 1.0
@@ -14,6 +15,10 @@ export interface Settings {
   theme: 'light' | 'dark';      // UI theme, default 'light'
   ttsProvider: 'web-speech' | 'openai';  // TTS provider
   selectedPaletteId: string;    // Color palette ID, default 'modern-minimal'
+  subtitlesEnabled: boolean;    // Enable subtitles, default false
+  subtitleSize: SubtitleSize;   // Subtitle size, default 'medium'
+  subtitlePosition: 'top' | 'bottom';  // Subtitle position, default 'bottom'
+  subtitleBackground: 'solid' | 'blur' | 'none';  // Subtitle background style, default 'blur'
 }
 
 export interface SettingsContextValue {
@@ -32,6 +37,10 @@ const DEFAULT_SETTINGS: Settings = {
   theme: 'light',
   ttsProvider: 'openai',  // Default to OpenAI-compatible (local soprano)
   selectedPaletteId: DEFAULT_PALETTE_ID,
+  subtitlesEnabled: false,
+  subtitleSize: 'medium',
+  subtitlePosition: 'bottom',
+  subtitleBackground: 'blur',
 };
 
 const STORAGE_KEY = 'slides-tutor-settings';

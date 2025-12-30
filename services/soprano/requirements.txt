@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+soprano-tts
+soundfile
+numpy
+python-multipart
