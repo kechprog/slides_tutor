@@ -3,7 +3,27 @@
 import { useTheme } from '@/context';
 
 export function ThemeToggle() {
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme, mounted } = useTheme();
+
+  // Render placeholder during SSR/hydration to avoid mismatch
+  if (!mounted) {
+    return (
+      <button
+        className="p-2 rounded-lg transition-colors duration-200 hover:opacity-80"
+        style={{
+          backgroundColor: 'var(--color-bg-secondary)',
+          color: 'var(--color-text)',
+          border: '1px solid var(--color-border)',
+          width: '36px',
+          height: '36px',
+        }}
+        aria-label="Toggle theme"
+        disabled
+      >
+        <span className="w-5 h-5 block" />
+      </button>
+    );
+  }
 
   return (
     <button

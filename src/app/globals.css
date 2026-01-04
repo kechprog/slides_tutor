@@ -4,6 +4,7 @@
 @import "../styles/highlighting.css";
 @import "../styles/subtitles.css";
 @import "../styles/controls.css";
+@import "../styles/chat.css";
 
 :root {
   --background: #ffffff;

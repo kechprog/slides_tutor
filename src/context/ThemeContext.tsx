@@ -9,6 +9,7 @@ export interface ThemeContextValue {
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
   resolvedTheme: 'light' | 'dark';
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -30,9 +31,18 @@ function getStoredTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Track if component has mounted to avoid hydration mismatch
+  const [mounted, setMounted] = useState(false);
   // Use lazy initialization to get stored theme on first render
-  const [theme, setThemeState] = useState<Theme>(getStoredTheme);
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme);
+  const [theme, setThemeState] = useState<Theme>('system');
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
+
+  // Initialize theme from localStorage after mount
+  useEffect(() => {
+    setThemeState(getStoredTheme());
+    setSystemTheme(getSystemTheme());
+    setMounted(true);
+  }, []);
 
   // Compute resolved theme from current theme and system theme
   const resolvedTheme = useMemo<'light' | 'dark'>(() => {
@@ -71,6 +81,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme,
     toggleTheme,
     resolvedTheme,
+    mounted,
   };
 
   return (
