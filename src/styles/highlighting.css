@@ -66,7 +66,7 @@
   width: 24px;
   height: 24px;
   pointer-events: none;
-  z-index: 100;
+  z-index: 20;
   animation: indicator-bounce 1s ease-in-out infinite;
 }
 

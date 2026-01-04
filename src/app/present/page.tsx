@@ -1,13 +1,19 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { SlideRenderer } from '@/components/SlideRenderer';
 import { ControlPanel } from '@/components/ControlPanel';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useSlideshow, useSettings } from '@/context';
 import { usePlayback } from '@/hooks';
-import { X, Settings } from 'lucide-react';
+import { buildNarrationQueue } from '@/lib/narration';
+import { X, Settings, Mic } from 'lucide-react';
+
+const OPENAI_VOICES = [
+  'soprano', 'nova', 'alloy', 'echo', 'fable', 'onyx', 'shimmer',
+  'Carter', 'Davis', 'Emma', 'Frank', 'Grace', 'Mike', 'Samuel'
+];
 
 export default function PresentPage() {
   const router = useRouter();
@@ -15,9 +21,54 @@ export default function PresentPage() {
   const { settings, updateSettings } = useSettings();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [browserVoices, setBrowserVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   // Initialize playback hook
   const { state, controls } = usePlayback(slideshow);
+
+  // Build set of narrable element IDs for click-to-narrate feature
+  const narratableElementIds = useMemo(() => {
+    if (!slideshow) return new Set<string>();
+    const queue = buildNarrationQueue(slideshow);
+    return new Set(queue.map((item) => item.id));
+  }, [slideshow]);
+
+  // Handle click on narrable elements
+  const handleElementClick = useCallback((elementId: string) => {
+    controls.skipToElement(elementId);
+  }, [controls]);
+
+  // Load browser voices via speechSynthesis API
+  useEffect(() => {
+    const loadVoices = () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        const voices = window.speechSynthesis.getVoices();
+        setBrowserVoices(voices);
+      }
+    };
+
+    loadVoices();
+
+    // Some browsers load voices asynchronously
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, []);
+
+  // Compute available voices based on selected provider
+  const availableVoices = useMemo(() => {
+    if (settings.ttsProvider === 'openai') {
+      return OPENAI_VOICES;
+    } else {
+      return browserVoices.map(voice => voice.name);
+    }
+  }, [settings.ttsProvider, browserVoices]);
 
   // Handle case where no slideshow is loaded
   useEffect(() => {
@@ -190,10 +241,16 @@ export default function PresentPage() {
         </button>
       </div>
 
-      {/* Settings Modal Placeholder */}
+      {/* Settings Modal */}
       {showSettings && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black bg-opacity-75"
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Settings</h2>
               <button
@@ -206,6 +263,52 @@ export default function PresentPage() {
             </div>
 
             <div className="space-y-4">
+              {/* TTS Provider Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <Mic className="w-4 h-4 inline mr-2" />
+                  TTS Provider
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => updateSettings({ ttsProvider: 'openai', voiceId: OPENAI_VOICES[0] })}
+                    className={`flex-1 px-4 py-2 rounded transition-colors ${
+                      settings.ttsProvider === 'openai'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'bg-gray-700 hover:bg-gray-600'
+                    }`}
+                  >
+                    OpenAI
+                  </button>
+                  <button
+                    onClick={() => updateSettings({ ttsProvider: 'web-speech', voiceId: browserVoices[0]?.name || '' })}
+                    className={`flex-1 px-4 py-2 rounded transition-colors ${
+                      settings.ttsProvider === 'web-speech'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'bg-gray-700 hover:bg-gray-600'
+                    }`}
+                  >
+                    Browser
+                  </button>
+                </div>
+              </div>
+
+              {/* Voice Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Voice</label>
+                <select
+                  value={settings.voiceId || ''}
+                  onChange={(e) => updateSettings({ voiceId: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {availableVoices.map((voice) => (
+                    <option key={voice} value={voice}>
+                      {voice}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Playback Speed</label>
                 <div className="flex items-center gap-4">
@@ -245,15 +348,6 @@ export default function PresentPage() {
                 </button>
               </div>
 
-              <div className="pt-4 text-xs text-gray-400 space-y-1">
-                <p className="font-semibold">Keyboard Shortcuts:</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">Space</kbd> Play/Pause</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">→</kbd> or <kbd className="px-1 py-0.5 bg-gray-700 rounded">N</kbd> Next Slide</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">←</kbd> or <kbd className="px-1 py-0.5 bg-gray-700 rounded">P</kbd> Previous Slide</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">F</kbd> Toggle Fullscreen</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">+/-</kbd> Adjust Speed</p>
-                <p><kbd className="px-1 py-0.5 bg-gray-700 rounded">Esc</kbd> Exit</p>
-              </div>
             </div>
           </div>
         </div>
@@ -263,8 +357,11 @@ export default function PresentPage() {
       <div className="absolute inset-0 flex items-center justify-center">
         <SlideRenderer
           slide={currentSlide}
+          slideIndex={state.currentSlideIndex}
           highlightedElementId={state.highlightedElementId}
           transition={currentSlide.transition || 'fade'}
+          onElementClick={handleElementClick}
+          narratableElementIds={narratableElementIds}
         />
       </div>
 

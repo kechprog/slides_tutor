@@ -7,20 +7,26 @@ import { HighlightIndicator } from './HighlightIndicator';
 
 interface SlideContentProps {
   node: ContentNode;
+  slideIndex: number;
   path: number[];
   highlightedElementId: string | null;
   highlightStyle?: HighlightStyle;
   highlightColor?: string;
   showHighlightIndicator?: boolean;
+  onElementClick?: (elementId: string) => void;
+  narratableElementIds?: Set<string>;
 }
 
 const SlideContentComponent = ({
   node,
+  slideIndex,
   path,
   highlightedElementId,
   highlightStyle = 'glow',
   highlightColor = '#fef08a',
   showHighlightIndicator = true,
+  onElementClick,
+  narratableElementIds,
 }: SlideContentProps) => {
   // Handle text nodes
   if (node.type === 'text') {
@@ -28,11 +34,14 @@ const SlideContentComponent = ({
     return <>{textNode.content}</>;
   }
 
-  // Generate unique element ID from path
-  const elementId = `elem-${path.join('-')}`;
+  // Generate unique element ID from slideIndex and path
+  const elementId = `slide-${slideIndex}-elem-${path.join('-')}`;
 
   // Determine if this element should be highlighted
   const isHighlighted = elementId === highlightedElementId;
+
+  // Determine if this element has narration (is clickable)
+  const isNarratable = narratableElementIds?.has(elementId) ?? false;
 
   // Build className with highlight style
   const getClassName = () => {
@@ -41,18 +50,30 @@ const SlideContentComponent = ({
       classes.push('highlighted');
       classes.push(`highlight-${highlightStyle}`);
     }
+    if (isNarratable) {
+      classes.push('narratable');
+    }
     return classes.join(' ');
   };
 
   const className = getClassName();
 
-  // CSS custom property for highlight color
-  const style = isHighlighted
-    ? { '--highlight-color': highlightColor } as React.CSSProperties
-    : undefined;
+  // CSS custom property for highlight color and cursor style
+  const style: React.CSSProperties = {
+    ...(isHighlighted ? { '--highlight-color': highlightColor } as React.CSSProperties : {}),
+    ...(isNarratable ? { cursor: 'pointer' } : {}),
+  };
 
   // ARIA attributes for highlighted elements
   const ariaProps = isHighlighted ? { 'aria-current': 'step' as const } : {};
+
+  // Click handler for narration skip
+  const handleClick = isNarratable && onElementClick
+    ? (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onElementClick(elementId);
+      }
+    : undefined;
 
   // Helper to wrap element with indicator if highlighted
   const wrapWithIndicator = (element: React.ReactElement) => {
@@ -81,6 +102,7 @@ const SlideContentComponent = ({
         alt={imgElement.alt}
         width={imgElement.width}
         height={imgElement.height}
+        onClick={handleClick}
         {...ariaProps}
       />
     );
@@ -95,11 +117,14 @@ const SlideContentComponent = ({
     <SlideContent
       key={`${path.join('-')}-${index}`}
       node={child}
+      slideIndex={slideIndex}
       path={[...path, index]}
       highlightedElementId={highlightedElementId}
       highlightStyle={highlightStyle}
       highlightColor={highlightColor}
       showHighlightIndicator={showHighlightIndicator}
+      onElementClick={onElementClick}
+      narratableElementIds={narratableElementIds}
     />
   ));
 
@@ -108,6 +133,7 @@ const SlideContentComponent = ({
     id: elementId,
     className,
     style,
+    onClick: handleClick,
     ...ariaProps,
   };
 
@@ -159,6 +185,11 @@ const SlideContentComponent = ({
 
 // Custom comparison function to handle array and object props
 const arePropsEqual = (prevProps: SlideContentProps, nextProps: SlideContentProps): boolean => {
+  // Compare slideIndex
+  if (prevProps.slideIndex !== nextProps.slideIndex) {
+    return false;
+  }
+
   // Compare highlightedElementId (simple string comparison)
   if (prevProps.highlightedElementId !== nextProps.highlightedElementId) {
     return false;
@@ -172,6 +203,16 @@ const arePropsEqual = (prevProps: SlideContentProps, nextProps: SlideContentProp
     return false;
   }
   if (prevProps.showHighlightIndicator !== nextProps.showHighlightIndicator) {
+    return false;
+  }
+
+  // Compare onElementClick callback (by reference)
+  if (prevProps.onElementClick !== nextProps.onElementClick) {
+    return false;
+  }
+
+  // Compare narratableElementIds (by reference - should be stable from parent)
+  if (prevProps.narratableElementIds !== nextProps.narratableElementIds) {
     return false;
   }
 

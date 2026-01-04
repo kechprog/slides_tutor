@@ -22,6 +22,7 @@ interface PlaybackControls {
   nextSlide(): void;
   prevSlide(): void;
   goToSlide(index: number): void;
+  skipToElement(elementId: string): void;
   setAutoAdvance(enabled: boolean): void;
   setPlaybackRate(rate: number): void;
 }
@@ -413,6 +414,52 @@ export function usePlayback(slideshow: Slideshow | null): {
     });
   }, [slideshow, state.currentNarrationIndex, getFirstNarrationIndexForSlide]);
 
+  // Skip to specific element control
+  const skipToElement = useCallback((elementId: string) => {
+    // Find the narration item by element ID
+    // Element IDs include slideIndex so they are globally unique
+    const narrationIndex = narrationQueueRef.current.findIndex(
+      (item) => item.id === elementId
+    );
+
+    if (narrationIndex === -1) {
+      // Element not found in narration queue
+      return;
+    }
+
+    const narrationItem = narrationQueueRef.current[narrationIndex];
+    const wasPlaying = isPlayingRef.current;
+
+    // Stop current TTS playback and clear timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (ttsEngineRef.current) {
+      ttsEngineRef.current.stop();
+    }
+    isPlayingRef.current = false;
+
+    // Update refs
+    currentNarrationIndexRef.current = narrationIndex;
+    currentSlideIndexRef.current = narrationItem.slideIndex;
+
+    // Set the highlighted element immediately
+    setState({
+      status: wasPlaying ? 'playing' : 'idle',
+      currentSlideIndex: narrationItem.slideIndex,
+      currentNarrationIndex: narrationIndex,
+      highlightedElementId: elementId,
+    });
+
+    // If was playing, start playing from that element
+    if (wasPlaying) {
+      isPlayingRef.current = true;
+      prefetchUpcoming(narrationIndex, PREFETCH_LOOKAHEAD);
+      timeoutRef.current = setTimeout(() => playNextNarrationRef.current?.(), 0);
+    }
+  }, [prefetchUpcoming]);
+
   // Set auto-advance control
   const setAutoAdvance = useCallback((enabled: boolean) => {
     autoAdvanceRef.current = enabled;
@@ -434,6 +481,7 @@ export function usePlayback(slideshow: Slideshow | null): {
       nextSlide,
       prevSlide,
       goToSlide,
+      skipToElement,
       setAutoAdvance,
       setPlaybackRate,
     },

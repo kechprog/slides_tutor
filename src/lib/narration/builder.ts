@@ -92,7 +92,7 @@ function traverseContent(
 
     // If element has narration, add to queue
     if (element.narration !== undefined) {
-      const id = generateNarrationId(elementPath);
+      const id = generateNarrationId(slideIndex, elementPath);
       queue.push({
         id,
         text: element.narration,
@@ -111,11 +111,13 @@ function traverseContent(
 
 /**
  * Generates a unique ID for a narration item.
- * Format: elem-{path} (matches SlideContent component's ID generation)
+ * Format: slide-{slideIndex}-elem-{path} (matches SlideContent component's ID generation)
+ * Including slideIndex ensures IDs are unique across all slides.
  *
+ * @param slideIndex - Index of the slide containing this element
  * @param elementPath - Path to element in slide tree
  * @returns Unique ID string
  */
-function generateNarrationId(elementPath: number[]): string {
-  return `elem-${elementPath.join("-")}`;
+function generateNarrationId(slideIndex: number, elementPath: number[]): string {
+  return `slide-${slideIndex}-elem-${elementPath.join("-")}`;
 }

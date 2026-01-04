@@ -7,14 +7,20 @@ import './SlideRenderer.css';
 
 interface SlideRendererProps {
   slide: Slide;
+  slideIndex: number;
   highlightedElementId: string | null;
   transition?: TransitionType;
+  onElementClick?: (elementId: string) => void;
+  narratableElementIds?: Set<string>;
 }
 
 const SlideRendererComponent = ({
   slide,
+  slideIndex,
   highlightedElementId,
-  transition = 'none'
+  transition = 'none',
+  onElementClick,
+  narratableElementIds,
 }: SlideRendererProps) => {
   // Build transition class name
   const transitionClass = transition !== 'none' ? `slide-transition-${transition}` : '';
@@ -30,8 +36,11 @@ const SlideRendererComponent = ({
           <SlideContent
             key={`slide-${slide.order}-${index}`}
             node={child}
+            slideIndex={slideIndex}
             path={[index]}
             highlightedElementId={highlightedElementId}
+            onElementClick={onElementClick}
+            narratableElementIds={narratableElementIds}
           />
         ))}
       </div>

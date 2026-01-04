@@ -62,7 +62,7 @@ describe("buildNarrationQueue", () => {
 
       expect(queue).toHaveLength(1);
       expect(queue[0]).toEqual({
-        id: "elem-0",
+        id: "slide-0-elem-0",
         text: "Hello world",
         delay: 0,
         elementPath: [0],
@@ -504,8 +504,8 @@ describe("buildNarrationQueue", () => {
 
       const queue = buildNarrationQueue(slideshow);
 
-      expect(queue[0].id).toBe("elem-0");
-      expect(queue[1].id).toBe("elem-1");
+      expect(queue[0].id).toBe("slide-0-elem-0");
+      expect(queue[1].id).toBe("slide-0-elem-1");
     });
   });
 
@@ -635,11 +635,9 @@ describe("buildNarrationQueue", () => {
 
       const queue = buildNarrationQueue(slideshow);
 
-      // IDs don't include slide index since SlideContent generates
-      // IDs based on path only (one slide rendered at a time)
-      expect(queue[0].id).toBe("elem-0");
-      expect(queue[1].id).toBe("elem-0"); // Same path on different slide
-      // We track slideIndex separately in the NarrationItem
+      // IDs include slide index for global uniqueness
+      expect(queue[0].id).toBe("slide-0-elem-0");
+      expect(queue[1].id).toBe("slide-1-elem-0"); // Same path on different slide, different ID
       expect(queue[0].slideIndex).toBe(0);
       expect(queue[1].slideIndex).toBe(1);
     });
